@@ -10,7 +10,7 @@ use rainbows2::{println};
 use x86_64::VirtAddr;
 use core::panic::PanicInfo;
 use bootloader::{BootInfo, entry_point};
-use rainbows2::task::{Task, executor::Executor};
+use rainbows2::task::{Task, executor::Executor, keyboard};
 
 
 // add a `config` argument to the `entry_point` macro call
@@ -34,17 +34,13 @@ pub fn kernel_main(boot_info: &'static BootInfo) -> ! {
     allocator::init_heap(&mut mapper, &mut frame_allocator)
     .expect("heap initialization failed");
 
+    #[cfg(test)]
+    test_main();
+
     let mut executor = Executor::new(); // new
     executor.spawn(Task::new(example_task()));
     executor.spawn(Task::new(keyboard::print_keypresses()));
     executor.run();
-    
-    #[cfg(test)]
-    test_main();
-
-    println!("We ran successfully! Time to loop in despair.");
-
-    rainbows2::hlt_loop()
 }
 
 async fn async_number() -> u32 {
